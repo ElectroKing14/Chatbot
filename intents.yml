@@ -1,0 +1,40 @@
+nein:
+    - "nein"
+    - "ne"
+    - "lass mal"
+    - "keinesfalls"
+    - "abgelehnen"
+
+ja:
+    - "ja"
+    - "natürlich"
+    - "tatsächlich"
+    - "klar"
+    - "definitiv"
+    - "jawohl"
+    - "durchaus"
+
+Begruessung:
+    - "Hi"
+    - "Hallo"
+    - "Hey"
+    - "Guten Tag"
+
+Abschied:
+    - "Tschüss"
+    - "bis später"
+    - "tschau"
+
+Schwerpunkte:
+    - "Schwerpunkt"
+    - "wichtig"
+
+Beratungsgespräch:
+    - "Beratungsgespräch"
+    - "beraten"
+    - "besprechen"
+    - "Gespräch"
+
+Anmeldezeitraum:
+    - "anmelden"
+    - "Anmeldung"
