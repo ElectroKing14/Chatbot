@@ -7,6 +7,9 @@ import threading
 from datetime import datetime
 from time import sleep
 
+# CPU statt GPU, was CUDA etc. benötigt
+spacy.require_cpu()
+
 
 # Semantische Analyse auf Deutsch
 @spacy.registry.misc("spacytextblob.de_blob")
