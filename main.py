@@ -1,5 +1,3 @@
-import time
-
 import spacy
 from spacy.matcher import Matcher
 from spacytextblob.spacytextblob import SpacyTextBlob
@@ -10,6 +8,7 @@ from datetime import datetime
 from time import sleep
 
 
+# Semantische Analyse auf Deutsch
 @spacy.registry.misc("spacytextblob.de_blob")
 def create_de_blob():
     return TextBlobDE
@@ -20,17 +19,20 @@ config = {
     "custom_blob": {"@misc": "spacytextblob.de_blob"}
 }
 
+# Erweitern der Pipeline, Initialisieren des EntityRulers und Matchers
 nlp = spacy.load("de_core_news_lg")
 nlp.add_pipe("spacytextblob", config=config)
 ruler = nlp.add_pipe("entity_ruler")
 matcher = Matcher(nlp.vocab)
 
+# Meine Variablen
 namen = []
 preis = 5
 spende = 0
 datum = None
 email = None
 
+# Das Muster um das Datum zu erkennen
 pattern = [
     {
         "label": "DATUM",
@@ -39,24 +41,35 @@ pattern = [
                 "SHAPE": "dd.dd.dddd"
             },
         ]
+    },
+    {
+        "label": "DATUM",
+        "pattern": [
+            {
+                "SHAPE": "dd.dd.dddd."
+            }
+        ]
     }
 ]
+
 ruler.add_patterns(pattern)
+
+# Die Methoden:
 
 
 def get_name():
     app.insert_text("Chatbot: Wie heißen Sie?")
     pattern2 = [
         {
+            "LOWER": "herr",
+            "OP": "?"
+        },
+        {
             "LOWER": "prof.",
             "OP": "?"
         },
         {
             "LOWER": "dr.",
-            "OP": "?"
-        },
-        {
-            "LOWER": "herr",
             "OP": "?"
         },
         {
@@ -69,18 +82,18 @@ def get_name():
     if not matches:
         app.insert_text("Chatbot: Für die Ausstellung der Tickets benötige ich Vor- und Nachname. Können Sie bitte "
                         "beides angeben?")
-        matches = get_name()
+        get_name()
+        return
     namen.append(matches[0].text)
-    return matches
 
 
 def get_namen():
     app.insert_text("Chatbot: Listen Sie bitte die Personen auf:")
     matches = matcher(nlp(app.get_input()), as_spans=True)
     if not matches:
-        app.insert_text("Chatbot: Listen Sie bitte die Personen auf und achten Sie bitte auf Vor- und "
-                        "Nachnamen.")
+        app.insert_text("Chatbot: Achten Sie bitte auf Vor- und Nachnamen.")
         get_namen()
+        return
     for match in matches:
         namen.append(match.text)
 
@@ -102,10 +115,13 @@ def get_datum():
     for ent in nlp(app.get_input()).ents:
         if ent.label_ == "DATUM":
             datum = ent.text
+            if datum[-1] == ".":
+                datum = datum[:-1]
             if datetime.strptime(datum, "%d.%m.%Y") < datetime.today():
                 app.insert_text("Chatbot: Es scheint als sei ihr Datum in der Vergangenheit. Bitte geben Sie ein "
                                 "aktuelles Datum an.")
                 get_datum()
+                return
             else:
                 app.insert_text(f"Chatbot: Alles klar. Der {datum} wird wohl der große Tag sein.")
     if datum is None:
@@ -118,19 +134,22 @@ def get_spende():
     app.insert_text("Chatbot: Wieviel möchten Sie spenden?")
     pattern3 = [
         {"LIKE_NUM": True},
-        {"TEXT": "€", "OP": "?"}
+        {"TEXT": "€", "OP": "?"},
+        {"POS": "PUNCT", "OP": "?"}
     ]
     matcher.add("GELDANZAHL", [pattern3])
     matches = matcher(nlp(app.get_input()), as_spans=True)
     if not matches:
         app.insert_text("Chatbot: Leider konnte ich keine Zahl erkennen. Können Sie es erneut versuchen?")
         get_spende()
+        return
     try:
         spende = int(matches[0].text.replace("€", ""))
     except ValueError:
         app.insert_text("Chatbot: Es scheint so als hätten Sie eine Kommazahl eingegeben. Bitte beschränken Sie sich "
                         "auf ganze Zahlen.")
         get_spende()
+        return
     app.insert_text("Chatbot: Vielen Dank für ihre großzügige Spende!")
 
 
@@ -143,6 +162,7 @@ def get_email():
     if not matches:
         app.insert_text("Chatbot: Ich konnte keine Email erkennen. Haben Sie sich vielleicht vertippt?")
         get_email()
+        return
     email = matches[0].text
 
 
@@ -166,6 +186,7 @@ def ausgabe():
     app.insert_text(f"Chatbot: Die Rechnung und die Tickets werden Ihnen ({email}) sofort zugesendet.")
 
 
+# Hauptmethode
 def chat():
     app.insert_text("Chatbot: Hallo. Möchten Sie Tickets für Emazing Rock kaufen?")
     if app.user_consent():
@@ -182,18 +203,20 @@ def chat():
         get_email()
         get_bewertung()
         ausgabe()
-        time.sleep(10)
+        sleep(10)
         app.insert_text("Chatbot: Ich schließe mich nun in 10 Sekunden.")
-        time.sleep(10)
+        sleep(10)
         app.close()
     else:
         app.insert_text("Chatbot: Warum sind Sie dann hier?")
-        time.sleep(5)
+        sleep(5)
         chat()
 
 
+# Starten der GUI und des Chats
 if __name__ == "__main__":
     app = App()
     chat_thread = threading.Thread(target=chat)
     chat_thread.start()
     app.run()
+    exit()

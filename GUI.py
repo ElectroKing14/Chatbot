@@ -5,9 +5,11 @@ import tkinter.ttk as ttk
 
 class App:
 
+    # Aussehen der GUI
     def __init__(self):
         self.response = None
         self.input = ""
+        # Event-Flags um auf Nutzereingabe zu warten
         self.input_event = threading.Event()
         self.click_event = threading.Event()
 
@@ -27,13 +29,14 @@ class App:
         self.conversation_box.config(state="disabled")
         self.conversation_box.pack(pady=20, padx=10)
 
-        self.input_label = tk.Label(self.root, text="User Input:", font=self.font, bg=self.bg_color, fg=self.fg_color)
+        self.input_label = tk.Label(self.root, text="Nutzer Eingabe:", font=self.font, bg=self.bg_color,
+                                    fg=self.fg_color)
         self.input_label.pack(pady=(0, 10))
         self.input_field = tk.Entry(self.root, bg=self.input_bg_color, fg=self.fg_color, font=self.font, width=50,
                                     bd=0, highlightthickness=0, insertbackground=self.fg_color)
         self.input_field.pack(ipady=5, padx=20)
 
-        self.submit_button = tk.Button(self.root, text="Send", font=self.font, bg=self.btn_bg_color, fg=self.fg_color,
+        self.submit_button = tk.Button(self.root, text="Senden", font=self.font, bg=self.btn_bg_color, fg=self.fg_color,
                                        relief="flat", command=self.handle_input)
         self.submit_button.pack(pady=(10, 20))
 
@@ -44,13 +47,15 @@ class App:
         self.seperator = ttk.Separator(self.root, orient='vertical', style="Black.TSeparator")
         self.nein_button = tk.Button(self.root, text="Nein", font=self.font, bg=self.btn_bg_color, fg=self.fg_color,
                                      relief="flat", command=lambda: self.set_response(False))
-        self.ja_button.bind("<Return>", lambda event: self.handle_input())
+
+        # Enter-Taste als QOL-Feature
         self.input_field.bind("<Return>", lambda event: self.handle_input())
 
         self.root.config(bg=self.bg_color)
 
         self.input_field.focus()
 
+    # Wird aufgerufen, wenn der Nutzer Enter oder Senden drückt
     def handle_input(self):
         self.input = self.input_field.get()
         self.insert_text(f"Sie: {self.input}")
@@ -58,17 +63,20 @@ class App:
         self.input_field.focus()
         self.input_event.set()
 
+    # Wird aufgerufen, um die Eingabe des Nutzers zu erhalten
     def get_input(self):
         self.input_event.wait()
         self.input_event.clear()
         return self.input
 
+    # Einfügen von Text
     def insert_text(self, text):
         self.conversation_box.config(state="normal")
         self.conversation_box.insert(tk.END, f"{text}\n")
         self.conversation_box.see(tk.END)
         self.conversation_box.config(state="disabled")
 
+    # Ersetzen des Eingabefelds mit den Buttons
     def replace_input_with_buttons(self):
         self.input_label.pack_forget()
         self.input_field.pack_forget()
@@ -84,6 +92,7 @@ class App:
         self.nein_button.bind("<Enter>", lambda event: self.nein_button.config(bg="#555555"))
         self.nein_button.bind("<Leave>", lambda event: self.nein_button.config(bg=self.btn_bg_color))
 
+    # s.o. nur umgekehrt
     def replace_buttons_with_input(self):
         self.ja_button.pack_forget()
         self.nein_button.pack_forget()
@@ -96,6 +105,7 @@ class App:
         self.input_field.focus()
         self.input_field.delete(0, tk.END)
 
+    # gibt zurück, ob der Nutzer ja oder nein gedrückt hat
     def user_consent(self):
         self.replace_input_with_buttons()
         self.click_event.wait()
@@ -103,6 +113,7 @@ class App:
         self.replace_buttons_with_input()
         return self.response
 
+    # Gibt "Ja" oder "Nein" aus, nachdem der Nutzer den jeweiligen Button gedrückt hat
     def set_response(self, response):
         self.response = response
         if response:
